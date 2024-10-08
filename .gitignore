@@ -1,2 +1,5 @@
 # py venv
 .venv
+
+# database
+*.csv
