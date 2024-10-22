@@ -2,6 +2,8 @@
 
 import os
 import csv
+import sys
+import json
 import time
 import uuid
 import argparse
@@ -12,13 +14,15 @@ import argparse
 VERSION = '0.1'
 TWODAYS = 48 * 60 * 60  # 48 hours in seconds
 
-
+# helper function prints to stderr
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 # define a CLI
 
 def addCLI():
     parser = argparse.ArgumentParser(prog="maps-auth", description="maps auth service")
-    subparser = parser.add_subparsers(help="Use --help with each of thec ommands for more help", dest="SubPars_NAME", required=True)
+    subparser = parser.add_subparsers(help="Use --help with each of thec ommands for more help", dest="SubPars_NAME")
 
     # arguments for main path
     parser.add_argument("--version", action='version', version=VERSION)
@@ -81,16 +85,28 @@ def auth(username: str, key: str, dbfile: str):
     with open(dbfile) as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         csvheader = reader.__next__()
-        csvcontents = {row[1]:row[2] for row in reader}
+        csvcontents = {row[1]:row[-1] for row in reader}
 
     if username in csvcontents.keys():
         #check valid key
         if is_valid_uuid(key):
             #check key equality
             if key == csvcontents[username]:
-                print("Valid!")
+                eprint("Valid!")
+                return True
             else:
-                print("Key not registered or expired!")
+               eprint("Key not registered or expired!")
+    return False
+
+def tusdauth(args, authstr):
+    assert authstr[0] == "Basic"
+    # call auth with the rest
+    if auth(authstr[1].split(':')[0], authstr[1].split(':')[-1], args.DB):
+        eprint("Authenticated!")
+
+    # build a reject output
+    rejdict = {"RejectUpload": True, "HTTPResponse":{"StatusCode": 401, "Body": "Authentication failed"}}
+    print(json.dumps(rejdict))
 
 def main():
     parser = addCLI()
@@ -103,9 +119,14 @@ def main():
         print("pruning now...")
         prune_db(args.DB)
     elif args.SubPars_NAME == "auth":
-        pass
+        print("checking auth...")
+        return auth(args.NAME, args.KEY, args.DB)
     else:
-        raise ValueError("Impossible Case")
+        # being called from tusd, grab stuff from STDIN
+        instring = sys.stdin.read()
+        authstr = json.loads(instring)["Event"]["HTTPRequest"]["Header"]["Authentication"][0].split()
+        tusdauth(args, authstr)
+
 
 
 if __name__ == "__main__":
