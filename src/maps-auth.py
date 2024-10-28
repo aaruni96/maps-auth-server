@@ -57,6 +57,10 @@ def is_valid_uuid(key: str):
     return False
 
 def add_key(name: str, dbfile: str):
+    # assert that we don't already know the user
+    with open(dbfile, 'r') as indb:
+        for line in indb:
+            assert name not in line, f"Cannot add {name} as it already exists and must be unique!\n"
     key = uuid.uuid4()
     with open(dbfile, 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
@@ -68,7 +72,7 @@ def prune_db(dbfile: str):
     with open(dbfile) as readfile:
         reader = csv.reader(readfile, delimiter=',')
         csvheader = reader.__next__()
-        csvcontents = [row for row in reader]
+        csvcontents = [row for row in reader if row != []]
 
     with open("tmpdb.csv", 'w', newline='') as writefile:
         writer = csv.writer(writefile, delimiter=',')
@@ -103,10 +107,12 @@ def tusdauth(args, authstr):
     # call auth with the rest
     if auth(authstr[1].split(':')[0], authstr[1].split(':')[-1], args.DB):
         eprint("Authenticated!")
+        return True
 
     # build a reject output
     rejdict = {"RejectUpload": True, "HTTPResponse":{"StatusCode": 401, "Body": "Authentication failed"}}
     print(json.dumps(rejdict))
+    return False
 
 def main():
     parser = addCLI()
