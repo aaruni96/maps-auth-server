@@ -17,7 +17,7 @@ Check the following:
   ```bash
   python3 -m venv .venv
   source .venv/bin/activate
-  pip instal --upgrade -r requirements.txt
+  pip install --upgrade -r requirements.txt
   ```
 - Export environment variables `XDG_DATA_HOME` and `HOME` to a filesystem which supports extended
   attributes, if needed.
