@@ -114,9 +114,20 @@ def tusdauth(args, authstr):
     print(json.dumps(rejdict))
     return False
 
+def check_db(dbfile):
+    if not os.path.isfile(dbfile):
+        # db doesn't already exist
+        # add just the header line to it
+        with open(dbfile, 'w') as writefile:
+            writefile.write("timestamp,username,key\n")
+    else:
+        # db already exists
+        pass
+
 def main():
     parser = addCLI()
     args = parser.parse_args()
+    check_db(args.DB)
     if args.SubPars_NAME == "add":
         print("adding....")
         add_key(args.NAME, args.DB)
