@@ -13,7 +13,7 @@ Check the following:
 - Clone `https://github.com/aaruni96/maps`, and checkout `ak96/upload`.
 - `libostree-dev`, `libgirepository1.0-dev`, and `libcairo2-dev` (or equivalents) need to be
   installed using your system's package manager.
-- Set up a python virtual environment, and install python pre requisites :
+- Set up a python virtual environment, and install python pre requisites. If you are using `csh` or `tcsh`, you must source `.venv/bin/activate.csh`. If you are using `fish`, you must source ` .venv/bin/activate.fish`. To deactivate this virtual environment, type in `deactivate`.
   ```bash
   python3 -m venv .venv
   source .venv/bin/activate
@@ -33,9 +33,9 @@ before you can upload.
 ```bash
 # set up a minimal runtime tree
 mkdir ostree
-maps package --initialise ostree/new-runtime
+src/maps package --initialize ostree/new-runtime
 # commit runtime to maps
-maps package --commit ostree/new-runtime test-runtime-for-upload-testing
+src/maps package --commit ostree/new-runtime test-runtime-for-upload-testing
 # upload runtime
-maps package --upload test-runtime-for-upload-testing
+src/maps package --upload test-runtime-for-upload-testing
 ```
